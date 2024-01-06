@@ -1,0 +1,8 @@
+.games-category .game, .games-category .game img {
+    border-radius: 8px;
+    width: 100%;
+}
+
+.form-control{
+    background-color: #fff0 !important;
+}
