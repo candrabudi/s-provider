@@ -201,4 +201,22 @@ class UserDepositController extends Controller
             'pgsoft' => $pgsoft
         ]);
     }
+
+    public function refreshSaldo() {
+        $user = auth()->user();
+        $response = Curl::to('https://pp303.xyz/gs2c/html5/connection.do?cmd=getbalance&token=Wgvoh7u9lATfcLr&username='. $user->name)
+        ->get();
+
+        $content = json_decode($response, true);
+        $amount_without_decimal = number_format($content['balance'], 0, '.', '');
+        Saldo::where('user_id', $user->id)
+            ->update([
+                'saldo' => $amount_without_decimal
+            ]);
+
+        $saldo = Saldo::where('user_id', $user->id)->first();
+        $final_saldo = $amount_without_decimal + $saldo->bonus;
+        $formatted_amount = number_format($final_saldo, 0, '.', ',');
+        return $formatted_amount;
+    }
 }

@@ -321,7 +321,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // ROUTE USER 
     Route::resource('/user-deposit', UserDepositController::class);
-    Route::get('/user-saldo-refresh', [UserDepositController::class, 'get_saldo']);
+    Route::get('/user-saldo-refresh', [UserDepositController::class, 'refreshSaldo']);
     Route::resource('/user-withdraw', UserWithdrawController::class);
     Route::resource('/user-history', UserHistoryController::class);
     Route::resource('/user-pernyataan', UserPernyataanController::class);
