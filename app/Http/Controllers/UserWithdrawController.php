@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Game_api;
-
+use Ixudra\Curl\Facades\Curl;
 class UserWithdrawController extends Controller
 {
     /**
@@ -120,10 +120,12 @@ class UserWithdrawController extends Controller
     {
         $transaksi = Transaksi::find($id);
         $transaksi->status = $request->status;
+        $user = User::where('id', $transaksi->user_id)
+            ->first();
 
         // ditaolak saldo kembali
+        $saldo = Saldo::where('user_id', $transaksi->user_id)->first();
         if($request->status == 3){
-            $saldo = Saldo::where('user_id', $transaksi->user_id)->first();
             
             $saldo->saldo = $saldo->saldo + $transaksi->nominal;
             $saldo->save();
@@ -132,8 +134,19 @@ class UserWithdrawController extends Controller
             $game_api->game_transfer($transaksi->user_id, $transaksi->nominal);
         }
 
-        $transaksi->save();
+        $response = Curl::to('https://pp303.xyz/gs2c/html5/connection.do?cmd=transaksi&token=Wgvoh7u9lATfcLr&username='.$user->name.'&type=withdraw&amount='.$transaksi->nominal)
+            ->get();
 
+        $content = json_decode($response, true);
+        if($content['msg'] == 'Saldo Member Minus') {
+            return redirect()->back()->with('error', 'Data gagal diubah');
+        }
+
+        Saldo::where('user_id', $transaksi->user_id)
+            ->update([
+                'saldo' => $saldo->saldo - $transaksi->nominal
+            ]);
+        $transaksi->save();
 
         return redirect()->back()->with('success', 'Data berhasil diubah');
     }
